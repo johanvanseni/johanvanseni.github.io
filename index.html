@@ -3,135 +3,132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Dino</title>
+<title>Dino Chibi Game</title>
 <style>
-body {
-    margin:0;
-    background: #cceeff;
-    font-family:sans-serif;
-    user-select:none;
-    overflow:hidden;
-}
-#gameContainer {
-    position:relative;
-    margin:auto;
-    width:600px;
-    height:200px;
-    border:2px solid #000;
-    background:#fff;
-    overflow:hidden;
-}
-#gameCanvas {
-    display:block;
-    width:100%;
-    height:100%;
-}
-#scoreBoard {
-    position:absolute;
-    top:10px;
-    left:10px;
-    font-size:18px;
-    font-weight:bold;
-}
+body { margin:0; background:#cceeff; font-family:sans-serif; user-select:none; overflow:hidden; }
+#gameContainer { position:relative; margin:auto; width:600px; height:200px; border:2px solid #000; overflow:hidden; background:#fff;}
+#gameCanvas { display:block; width:100%; height:100%; }
+#scoreBoard { position:absolute; top:5px; left:10px; font-size:18px; font-weight:bold; }
+#credit { position:absolute; top:5px; right:10px; font-size:14px; font-weight:bold; }
 </style>
 </head>
 <body>
 <div id="gameContainer">
 <canvas id="gameCanvas" width="600" height="200"></canvas>
 <div id="scoreBoard">Score: <span id="score">0</span></div>
+<div id="credit">Dibuat oleh Johan Vanseni</div>
 </div>
 
+<audio id="bgMusic" src="https://assets.mixkit.co/music/preview/mixkit-cute-upbeat-game-132.mp3" loop></audio>
+<audio id="jumpSound" src="https://freesound.org/data/previews/170/170350_2437358-lq.mp3"></audio>
+<audio id="hitSound" src="https://freesound.org/data/previews/198/198841_2859977-lq.mp3"></audio>
+<audio id="powerupSound" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
+
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const scoreEl = document.getElementById('score');
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score');
+const bgMusic=document.getElementById('bgMusic');
+const jumpSound=document.getElementById('jumpSound');
+const hitSound=document.getElementById('hitSound');
+const powerupSound=document.getElementById('powerupSound');
 
-let dino = {x:50, y:150, width:40, height:40, color:'green', yVelocity:0, jumping:false};
-let cactusArr = [];
-let gravity = 0.6;
-let score = 0;
-let gameOver = false;
+let dino={x:50,y:150,width:40,height:40,color:'green',yVelocity:0,jumping:false};
+let cactusArr=[],powerUps=[];
+let gravity=0.6,score=0,gameOver=false;
 
-// Input
-document.addEventListener('keydown', e => {
-    if((e.key === ' ' || e.key === 'ArrowUp') && !dino.jumping){
-        dino.yVelocity = -12;
-        dino.jumping = true;
+// play music
+bgMusic.volume=0.3;
+bgMusic.play();
+
+// input
+document.addEventListener('keydown',e=>{
+    if((e.key===' ' || e.key==='ArrowUp') && !dino.jumping){
+        dino.yVelocity=-12; dino.jumping=true; jumpSound.currentTime=0; jumpSound.play();
     }
 });
 
-// Spawn cactus
-function spawnCactus(){
-    cactusArr.push({x:canvas.width, y:150, width:20, height:40, speed:6});
-}
+// spawn cactus
+function spawnCactus(){ cactusArr.push({x:canvas.width,y:150,width:20,height:40,speed:6}); }
+// spawn powerup
+function spawnPowerUp(){ powerUps.push({x:canvas.width,y:150,width:20,height:20,type:'score',speed:6}); }
 
-// Update
+// update
 function update(){
     if(gameOver) return;
-
     // Dino physics
-    dino.yVelocity += gravity;
-    dino.y += dino.yVelocity;
-    if(dino.y >= 150){
-        dino.y = 150;
-        dino.yVelocity = 0;
-        dino.jumping = false;
-    }
+    dino.yVelocity+=gravity;
+    dino.y+=dino.yVelocity;
+    if(dino.y>=150){ dino.y=150; dino.yVelocity=0; dino.jumping=false; }
 
     // Move cactus
     cactusArr.forEach((c,i)=>{
-        c.x -= c.speed;
-        // Collision
-        if(dino.x < c.x + c.width && dino.x + dino.width > c.x &&
-           dino.y < c.y + c.height && dino.y + dino.height > c.y){
-            gameOver = true;
-        }
-        if(c.x + c.width < 0) cactusArr.splice(i,1);
+        c.x-=c.speed;
+        if(dino.x < c.x + c.width && dino.x+dino.width > c.x &&
+           dino.y < c.y+c.height && dino.y+dino.height > c.y){
+               gameOver=true; hitSound.currentTime=0; hitSound.play();
+           }
+        if(c.x+c.width<0) cactusArr.splice(i,1);
     });
 
-    // Spawn cactus randomly
-    if(Math.random() < 0.02) spawnCactus();
+    // Move powerUps
+    powerUps.forEach((p,i)=>{
+        p.x-=p.speed;
+        if(dino.x < p.x + p.width && dino.x+dino.width>p.x &&
+           dino.y < p.y+p.height && dino.y+dino.height>p.y){
+               score+=10; scoreEl.innerText=score; powerupSound.currentTime=0; powerupSound.play();
+               powerUps.splice(i,1);
+           }
+        if(p.x+p.width<0) powerUps.splice(i,1);
+    });
 
-    // Update score
-    score += 1;
-    scoreEl.innerText = score;
+    // Random spawn
+    if(Math.random()<0.02) spawnCactus();
+    if(Math.random()<0.005) spawnPowerUp();
+
+    score+=1;
+    scoreEl.innerText=score;
 }
 
-// Draw
+// draw
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Draw ground
-    ctx.fillStyle = '#555';
+    // background ground
+    ctx.fillStyle='#555';
     ctx.fillRect(0,190,canvas.width,10);
 
-    // Draw dino
-    ctx.fillStyle = dino.color;
-    ctx.fillRect(dino.x,dino.y,dino.width,dino.height);
+    // dino chibi
+    ctx.fillStyle=dino.color;
+    ctx.beginPath();
+    ctx.arc(dino.x+dino.width/2,dino.y+dino.height/2,dino.width/2,0,Math.PI*2);
+    ctx.fill();
 
-    // Draw cactus
+    // cactus
     cactusArr.forEach(c=>{
-        ctx.fillStyle = 'brown';
+        ctx.fillStyle='brown';
         ctx.fillRect(c.x,c.y,c.width,c.height);
     });
 
-    // Game Over Text
+    // powerups
+    powerUps.forEach(p=>{
+        ctx.fillStyle='yellow';
+        ctx.beginPath();
+        ctx.arc(p.x+p.width/2,p.y+p.height/2,p.width/2,0,Math.PI*2);
+        ctx.fill();
+    });
+
     if(gameOver){
-        ctx.fillStyle = 'red';
-        ctx.font = '30px Arial';
-        ctx.fillText('GAME OVER', canvas.width/2 - 90, 100);
-        ctx.font = '20px Arial';
-        ctx.fillText('Refresh untuk main lagi', canvas.width/2 - 100, 130);
+        ctx.fillStyle='red';
+        ctx.font='30px Arial';
+        ctx.fillText('GAME OVER',canvas.width/2-90,100);
+        ctx.font='20px Arial';
+        ctx.fillText('Refresh untuk main lagi',canvas.width/2-100,130);
     }
 }
 
-// Game Loop
-function gameLoop(){
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
+// game loop
+function gameLoop(){ update(); draw(); requestAnimationFrame(gameLoop); }
 gameLoop();
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dino Chibi Game</title>
+<title>Dino Chibi Game - Tantangan Lebih Luas</title>
 <style>
 body { margin:0; background:#cceeff; font-family:sans-serif; user-select:none; overflow:hidden; }
 #gameContainer { position:relative; margin:auto; width:600px; height:200px; border:2px solid #000; overflow:hidden; background:#fff;}
@@ -36,6 +36,7 @@ const powerupSound=document.getElementById('powerupSound');
 let dino={x:50,y:150,width:40,height:40,color:'green',yVelocity:0,jumping:false};
 let cactusArr=[],powerUps=[];
 let gravity=0.6,score=0,gameOver=false;
+let lastCactusX=canvas.width;
 
 // play music
 bgMusic.volume=0.3;
@@ -48,14 +49,27 @@ document.addEventListener('keydown',e=>{
     }
 });
 
-// spawn cactus
-function spawnCactus(){ cactusArr.push({x:canvas.width,y:150,width:20,height:40,speed:6}); }
+// spawn cactus dengan jarak lebih lebar
+function spawnCactus(){
+    let minGap = 200; // jarak minimum antar cactus
+    if(cactusArr.length === 0 || lastCactusX - canvas.width < -minGap){
+        let c = {x:canvas.width, y:150, width:20, height:40, speed:6};
+        cactusArr.push(c);
+        lastCactusX = c.x;
+    }
+}
+
 // spawn powerup
-function spawnPowerUp(){ powerUps.push({x:canvas.width,y:150,width:20,height:20,type:'score',speed:6}); }
+function spawnPowerUp(){ 
+    if(Math.random()<0.5){ // lebih jarang muncul
+        powerUps.push({x:canvas.width, y:150, width:20, height:20, type:'score', speed:6});
+    }
+}
 
 // update
 function update(){
     if(gameOver) return;
+
     // Dino physics
     dino.yVelocity+=gravity;
     dino.y+=dino.yVelocity;

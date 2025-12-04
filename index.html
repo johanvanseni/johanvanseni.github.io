@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dino Chibi Game - Tantangan Lebih Luas</title>
+<title>Dino Chibi Game - Tantangan Lebih Ketat</title>
 <style>
 body { margin:0; background:#cceeff; font-family:sans-serif; user-select:none; overflow:hidden; }
 #gameContainer { position:relative; margin:auto; width:600px; height:200px; border:2px solid #000; overflow:hidden; background:#fff;}
@@ -49,9 +49,9 @@ document.addEventListener('keydown',e=>{
     }
 });
 
-// spawn cactus dengan jarak lebih lebar
+// spawn cactus dengan jarak lebih kecil (tantangan lebih ketat)
 function spawnCactus(){
-    let minGap = 200; // jarak minimum antar cactus
+    let minGap = 100; // jarak minimum antar cactus lebih kecil
     if(cactusArr.length === 0 || lastCactusX - canvas.width < -minGap){
         let c = {x:canvas.width, y:150, width:20, height:40, speed:6};
         cactusArr.push(c);
@@ -61,7 +61,7 @@ function spawnCactus(){
 
 // spawn powerup
 function spawnPowerUp(){ 
-    if(Math.random()<0.5){ // lebih jarang muncul
+    if(Math.random()<0.005){ // tetap jarang muncul
         powerUps.push({x:canvas.width, y:150, width:20, height:20, type:'score', speed:6});
     }
 }
@@ -97,7 +97,7 @@ function update(){
     });
 
     // Random spawn
-    if(Math.random()<0.02) spawnCactus();
+    if(Math.random()<0.04) spawnCactus(); // lebih sering spawn cactus
     if(Math.random()<0.005) spawnPowerUp();
 
     score+=1;
